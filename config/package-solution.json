@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "PMO GISO - Gestione Progetti",
+    "id": "2d0462e0-2f79-48fc-ad58-1010c517c6f8",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.21.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "pmo-giso description"
+      },
+      "longDescription": {
+        "default": "pmo-giso description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "pmo-giso Feature",
+        "description": "The feature that activates elements of the pmo-giso solution.",
+        "id": "7a46f11b-4626-451b-a3e2-e092994891ed",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/pmo-giso.sppkg"
+  }
+}

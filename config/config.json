@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "pmo-giso-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/pmoGiso/PmoGisoWebPart.js",
+          "manifest": "./src/webparts/pmoGiso/PmoGisoWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "PmoGisoWebPartStrings": "lib/webparts/pmoGiso/loc/{locale}.js"
+  }
+}

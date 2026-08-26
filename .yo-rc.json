@@ -1,0 +1,18 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "22.18.0",
+    "sdksVersions": {},
+    "version": "1.21.1",
+    "libraryName": "pmo-giso",
+    "libraryId": "2d0462e0-2f79-48fc-ad58-1010c517c6f8",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "pmo-giso",
+    "solutionShortDescription": "pmo-giso description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}
