@@ -28,7 +28,7 @@ import type {
 // dal PeoplePicker: l'Id e' gia' noto, quindi non servira' ri-risolvere l'utente
 // al salvataggio se la selezione non viene toccata (vedi resolvePersonFieldId).
 function personRefToValue(ref: IPersonFieldRef | undefined): IPersonValue | undefined {
-  if (!ref || ref.Id == null) {
+  if (!ref || ref.Id === undefined || ref.Id === null) {
     return undefined;
   }
   return { id: ref.Id, displayName: ref.Title ?? '', email: ref.EMail ?? '' };
@@ -42,11 +42,13 @@ export async function resolvePersonFieldId(
   peopleService: PeopleService,
   values: FormValues,
   fieldName: string,
+  // null (non undefined) e' richiesto dalla REST API di SharePoint per svuotare esplicitamente il campo persona.
+  // eslint-disable-next-line @rushstack/no-new-null
 ): Promise<number | null> {
   const raw = values[fieldName];
   if (raw && typeof raw === 'object') {
     const person = raw as IPersonValue;
-    if (person.id != null) {
+    if (person.id !== undefined && person.id !== null) {
       return person.id;
     }
     if (person.loginName) {

@@ -77,7 +77,7 @@ export function PeoplePicker({
   useEffect(() => {
     const trimmed = inputValue.trim();
 
-    if (debounceRef.current != null) {
+    if (debounceRef.current !== undefined && debounceRef.current !== null) {
       window.clearTimeout(debounceRef.current);
       debounceRef.current = undefined;
     }
@@ -106,7 +106,7 @@ export function PeoplePicker({
     }, DEBOUNCE_MS);
 
     return () => {
-      if (debounceRef.current != null) {
+      if (debounceRef.current !== undefined && debounceRef.current !== null) {
         window.clearTimeout(debounceRef.current);
       }
     };

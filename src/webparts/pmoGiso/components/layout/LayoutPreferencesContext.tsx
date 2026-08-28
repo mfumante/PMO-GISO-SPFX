@@ -28,7 +28,7 @@ const DENSITY_STORAGE_KEY = 'pmoGiso.tableDensity';
 function readSessionFlag(key: string): boolean | undefined {
   try {
     const raw = window.sessionStorage.getItem(key);
-    return raw == null ? undefined : raw === '1';
+    return raw === undefined || raw === null ? undefined : raw === '1';
   } catch {
     return undefined;
   }
@@ -93,7 +93,10 @@ export function LayoutPreferencesProvider({
   // solo finche' l'utente non ha espresso esplicitamente una preferenza in
   // questa sessione, per non sovrascrivere una scelta manuale ad ogni
   // ridimensionamento del contenitore.
-  const [hasUserToggled, setHasUserToggled] = useState<boolean>(() => readSessionFlag(SIDEBAR_STORAGE_KEY) != null);
+  const [hasUserToggled, setHasUserToggled] = useState<boolean>(() => {
+    const storedFlag = readSessionFlag(SIDEBAR_STORAGE_KEY);
+    return storedFlag !== undefined && storedFlag !== null;
+  });
 
   useEffect(() => {
     if (!hasUserToggled && widthTier === 'narrow') {

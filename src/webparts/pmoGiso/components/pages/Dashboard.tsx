@@ -10,11 +10,13 @@ import {
   Legend,
   Pie,
   PieChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
+import type { ReferenceLineProps } from 'recharts';
 import { PageContainer } from '../layout/PageContainer';
 import { KpiCard } from '../common/KpiCard';
 import { ExpandableCellText } from '../common/ExpandableCellText';
@@ -34,7 +36,40 @@ interface IDashboardData {
   allocations: IAllocation[];
 }
 
+// Riga del Gantt: 'offset' e' un Bar trasparente usato solo per spingere
+// a destra l'inizio della barra visibile (tecnica standard per un Gantt
+// con Recharts, che non ha un tipo di grafico Gantt nativo); 'completed'/
+// 'remaining' spezzano la durata del progetto in base a Progress cosi' la
+// barra mostra sia la pianificazione (inizio-fine) sia l'avanzamento reale.
+interface IGanttRow {
+  code: string;
+  title: string;
+  status: ProjectStatus;
+  start: number;
+  end: number;
+  progress: number;
+  offset: number;
+  completed: number;
+  remaining: number;
+}
+
 const currencyFormatter = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+const ganttDateFormatter = new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short' });
+const ganttTooltipDateFormatter = new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// recharts 2.x dichiara ReferenceLine come classe React (React.Component<Props>),
+// ma sotto @types/react 17 il tipo risultante non soddisfa l'interfaccia
+// JSX.ElementClass attesa dal compilatore (bug di tipizzazione noto di recharts,
+// non un problema di runtime: il componente funziona). Il cast e' isolato al solo
+// ReferenceLine - gli altri componenti recharts usati in questo file (Bar, XAxis,
+// YAxis, Pie, ecc.) non sono affetti e restano tipizzati normalmente.
+// Si usa il tipo Props pubblico esportato da recharts (ReferenceLineProps)
+// invece di estrarlo dalla classe: React.ComponentProps<typeof ReferenceLine>
+// fallisce per lo stesso motivo (l'istanza della classe non e' assegnabile a
+// Component<any,any,any> sotto questi @types/react), quindi il tipo va preso
+// dall'export pubblico. RefLine resta tipizzato sui props reali, niente 'any'.
+const RefLine = ReferenceLine as unknown as React.FC<ReferenceLineProps>;
 
 const ACTIVE_STATUSES: ProjectStatus[] = ['Not Started', 'In Progress', 'On Hold'];
 
@@ -74,6 +109,36 @@ function kpiColumns(tier: WidthTier): number {
 
 function chartColumns(tier: WidthTier): number {
   return tier === 'narrow' ? 1 : 2;
+}
+
+interface GanttTooltipProps {
+  active?: boolean;
+  payload?: Array<{ payload: IGanttRow }>;
+}
+
+// Componente React: il tipo di ritorno di una FunctionComponent e' fissato da
+// @types/react a ReactElement | null (non accetta undefined), quindi "null" qui
+// e' il modo idiomatico per dire "non renderizzare nulla" quando il tooltip di
+// recharts non e' attivo, non un valore di dato modellabile con undefined.
+// eslint-disable-next-line @rushstack/no-new-null
+function GanttTooltip({ active, payload }: GanttTooltipProps): React.ReactElement | null {
+  if (!active || !payload || payload.length === 0) {
+    return null;
+  }
+  const row = payload[0].payload;
+  return (
+    <Paper elevation={3} sx={{ p: 1.5, maxWidth: 260 }}>
+      <Typography variant="subtitle2">
+        {row.code} — {row.title}
+      </Typography>
+      <Typography variant="body2">
+        {ganttTooltipDateFormatter.format(new Date(row.start))} → {ganttTooltipDateFormatter.format(new Date(row.end))}
+      </Typography>
+      <Typography variant="body2">
+        Stato: {row.status} · Avanzamento: {Math.round(row.progress)}%
+      </Typography>
+    </Paper>
+  );
 }
 
 export default function Dashboard({ context }: DashboardProps): React.ReactElement {
@@ -121,6 +186,45 @@ export default function Dashboard({ context }: DashboardProps): React.ReactEleme
       .sort((a, b) => (b.BudgetTotal ?? 0) - (a.BudgetTotal ?? 0))
       .slice(0, 5);
 
+    const projectsWithDates = projects
+      .filter((project) => project.StartDate && project.EndDate)
+      .map((project) => ({
+        code: project.ProjectCode,
+        title: project.Title,
+        status: project.Status,
+        start: new Date(project.StartDate as string).getTime(),
+        end: new Date(project.EndDate as string).getTime(),
+        progress: Math.min(100, Math.max(0, project.Progress ?? 0)),
+      }))
+      .filter((project) => project.end >= project.start)
+      .sort((a, b) => a.start - b.start);
+
+    const ganttDomainStart = projectsWithDates.length > 0 ? Math.min(...projectsWithDates.map((p) => p.start)) : 0;
+    const ganttDomainEnd = projectsWithDates.length > 0 ? Math.max(...projectsWithDates.map((p) => p.end)) : 0;
+    // Se tutti i progetti iniziano e finiscono lo stesso giorno il range
+    // sarebbe 0: l'asse X (numerico, in ms) non avrebbe tick leggibili, quindi
+    // si forza un range minimo di un giorno.
+    const ganttSpan = ganttDomainEnd - ganttDomainStart > 0 ? ganttDomainEnd - ganttDomainStart : DAY_MS;
+
+    const ganttData: IGanttRow[] = projectsWithDates.map((project) => {
+      const duration = Math.max(project.end - project.start, DAY_MS);
+      const completed = duration * (project.progress / 100);
+      return {
+        code: project.code,
+        title: project.title,
+        status: project.status,
+        start: project.start,
+        end: project.end,
+        progress: project.progress,
+        offset: project.start - ganttDomainStart,
+        completed,
+        remaining: duration - completed,
+      };
+    });
+
+    const todayOffset = Date.now() - ganttDomainStart;
+    const projectsMissingDates = projects.length - projectsWithDates.length;
+
     return {
       activeProjectsCount,
       budgetTotal,
@@ -131,6 +235,11 @@ export default function Dashboard({ context }: DashboardProps): React.ReactEleme
       progressData,
       severityData,
       topProjectsByBudget,
+      ganttData,
+      ganttDomainStart,
+      ganttSpan,
+      todayOffset,
+      projectsMissingDates,
     };
   }, [result]);
 
@@ -240,6 +349,45 @@ export default function Dashboard({ context }: DashboardProps): React.ReactEleme
                 </ResponsiveContainer>
               </Box>
             </Paper>
+
+            {computed.ganttData.length > 0 && (
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Pianificazione progetti (Gantt)
+                </Typography>
+                <Box sx={{ width: '100%', height: Math.max(220, computed.ganttData.length * 44 + 60) }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={computed.ganttData} layout="vertical" margin={{ top: 8, right: 24, left: 8, bottom: 8 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                      <XAxis
+                        type="number"
+                        domain={[0, computed.ganttSpan]}
+                        tickFormatter={(value: number) => ganttDateFormatter.format(new Date(value + computed.ganttDomainStart))}
+                      />
+                      <YAxis type="category" dataKey="code" width={90} />
+                      <Tooltip content={<GanttTooltip />} />
+                      <RefLine x={computed.todayOffset} stroke="#A6145C" strokeDasharray="4 4" label={{ value: 'Oggi', position: 'top', fill: '#A6145C', fontSize: 12 }} />
+                      <Bar dataKey="offset" stackId="gantt" fill="transparent" isAnimationActive={false} />
+                      <Bar dataKey="completed" stackId="gantt" radius={[4, 4, 4, 4]} isAnimationActive={false}>
+                        {computed.ganttData.map((entry) => (
+                          <Cell key={`completed-${entry.code}`} fill={STATUS_COLORS[entry.status]} />
+                        ))}
+                      </Bar>
+                      <Bar dataKey="remaining" stackId="gantt" radius={[4, 4, 4, 4]} isAnimationActive={false}>
+                        {computed.ganttData.map((entry) => (
+                          <Cell key={`remaining-${entry.code}`} fill={STATUS_COLORS[entry.status]} fillOpacity={0.28} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Box>
+                <Typography variant="caption" color="text.secondary">
+                  Colore pieno = avanzamento completato, colore chiaro = quota residua. Linea tratteggiata = data odierna.
+                  {computed.projectsMissingDates > 0 &&
+                    ` ${computed.projectsMissingDates} progetti esclusi per data inizio/fine mancante.`}
+                </Typography>
+              </Paper>
+            )}
 
             <Paper variant="outlined" sx={{ p: 2 }}>
               <Typography variant="subtitle1" gutterBottom>

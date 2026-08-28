@@ -304,7 +304,9 @@ export default function PortfolioProgetti({ context, onOpenProject }: PortfolioP
                     </TableCell>
                     {showWideColumns && (
                       <TableCell align="right">
-                        {project.BudgetTotal != null ? currencyFormatter.format(project.BudgetTotal) : '-'}
+                        {project.BudgetTotal !== undefined && project.BudgetTotal !== null
+                          ? currencyFormatter.format(project.BudgetTotal)
+                          : '-'}
                       </TableCell>
                     )}
                     <TableCell

@@ -293,7 +293,7 @@ function readText(row: Record<string, unknown>, column: string): string {
   if (typeof raw === 'string') {
     return raw.trim();
   }
-  if (raw == null) {
+  if (raw === undefined || raw === null) {
     return '';
   }
   return String(raw).trim();
@@ -452,7 +452,7 @@ class RowValidator {
 
   public requiredChoice(row: Record<string, unknown>, column: string, options: string[]): string | undefined {
     const value = this.requiredText(row, column);
-    if (value == null) {
+    if (value === undefined || value === null) {
       return undefined;
     }
     if (options.indexOf(value) === -1) {
@@ -464,11 +464,11 @@ class RowValidator {
 
   public optionalDate(row: Record<string, unknown>, column: string): string | undefined {
     const raw = row[column];
-    if (raw == null || raw === '') {
+    if (raw === undefined || raw === null || raw === '') {
       return undefined;
     }
     const parsed = parseDateValue(raw);
-    if (parsed == null) {
+    if (parsed === undefined || parsed === null) {
       this.error(column, `Data non valida in '${column}': '${String(raw)}'. Formati ammessi: gg/mm/aaaa oppure aaaa-mm-gg.`);
       return undefined;
     }
@@ -477,11 +477,11 @@ class RowValidator {
 
   public optionalNumber(row: Record<string, unknown>, column: string): number | undefined {
     const raw = row[column];
-    if (raw == null || raw === '') {
+    if (raw === undefined || raw === null || raw === '') {
       return undefined;
     }
     const parsed = parseNumericValue(raw);
-    if (parsed == null) {
+    if (parsed === undefined || parsed === null) {
       this.error(column, `Numero non valido in '${column}': '${String(raw)}'.`);
       return undefined;
     }
@@ -490,7 +490,7 @@ class RowValidator {
 
   public optionalPercent(row: Record<string, unknown>, column: string): number | undefined {
     const value = this.optionalNumber(row, column);
-    if (value == null) {
+    if (value === undefined || value === null) {
       return undefined;
     }
     if (value < 0 || value > 100) {
@@ -502,11 +502,11 @@ class RowValidator {
 
   public optionalBoolean(row: Record<string, unknown>, column: string): boolean | undefined {
     const raw = row[column];
-    if (raw == null || raw === '') {
+    if (raw === undefined || raw === null || raw === '') {
       return undefined;
     }
     const parsed = parseBooleanValue(raw);
-    if (parsed == null) {
+    if (parsed === undefined || parsed === null) {
       this.error(column, `Valore non valido in '${column}': '${String(raw)}'. Usa Si/No, Yes/No, true/false, 1/0.`);
       return undefined;
     }
@@ -524,7 +524,7 @@ class RowValidator {
   public warnEmpty(fields: Record<string, unknown>): void {
     const emptyFields: string[] = [];
     Object.keys(fields).forEach((key) => {
-      if (fields[key] == null) {
+      if (fields[key] === undefined || fields[key] === null) {
         emptyFields.push(key);
       }
     });
@@ -859,7 +859,7 @@ export class ExcelService {
           if (typeof value === 'boolean') {
             return value ? 'Si' : 'No';
           }
-          return value == null ? '' : value;
+          return value === undefined || value === null ? '' : value;
         });
         aoa.push(line);
       });
@@ -924,7 +924,18 @@ export class ExcelService {
         Notes: notes,
       });
 
-      if (projectCode != null && title != null && status != null && priority != null && rag != null) {
+      if (
+        projectCode !== undefined &&
+        projectCode !== null &&
+        title !== undefined &&
+        title !== null &&
+        status !== undefined &&
+        status !== null &&
+        priority !== undefined &&
+        priority !== null &&
+        rag !== undefined &&
+        rag !== null
+      ) {
         const key = projectCode.trim();
         if (seenKeys.has(key)) {
           v.warnDuplicate('ProjectCode', projectCode);
@@ -998,7 +1009,7 @@ export class ExcelService {
 
       v.warnEmpty({ Role: role, Unit: unit, Capacity: capacity, Active: active, Notes: notes });
 
-      if (resourceCode != null && title != null) {
+      if (resourceCode !== undefined && resourceCode !== null && title !== undefined && title !== null) {
         const key = resourceCode.trim();
         if (seenKeys.has(key)) {
           v.warnDuplicate('ResourceCode', resourceCode);
@@ -1067,11 +1078,19 @@ export class ExcelService {
       v.warnEmpty({ Owner: owner, StartDate: startDate, EndDate: endDate, Progress: progress, Weight: weight, Notes: notes });
 
       let projectExists = false;
-      if (projectCode != null) {
+      if (projectCode !== undefined && projectCode !== null) {
         projectExists = v.checkReference('ProjectCode', projectCode, knownProjectCodes, 'Progetto');
       }
 
-      if (projectCode != null && title != null && status != null && projectExists) {
+      if (
+        projectCode !== undefined &&
+        projectCode !== null &&
+        title !== undefined &&
+        title !== null &&
+        status !== undefined &&
+        status !== null &&
+        projectExists
+      ) {
         const key = `${projectCode.trim()}::${title.trim()}`;
         if (seenKeys.has(key)) {
           v.warnDuplicate('Deliverable', `${projectCode} / ${title}`);
@@ -1153,11 +1172,21 @@ export class ExcelService {
       });
 
       let projectExists = false;
-      if (projectCode != null) {
+      if (projectCode !== undefined && projectCode !== null) {
         projectExists = v.checkReference('ProjectCode', projectCode, knownProjectCodes, 'Progetto');
       }
 
-      if (projectCode != null && title != null && severity != null && status != null && projectExists) {
+      if (
+        projectCode !== undefined &&
+        projectCode !== null &&
+        title !== undefined &&
+        title !== null &&
+        severity !== undefined &&
+        severity !== null &&
+        status !== undefined &&
+        status !== null &&
+        projectExists
+      ) {
         const key = `${projectCode.trim()}::${title.trim()}`;
         if (seenKeys.has(key)) {
           v.warnDuplicate('Issue', `${projectCode} / ${title}`);
@@ -1226,15 +1255,22 @@ export class ExcelService {
       v.warnEmpty({ AllocationPercent: allocationPercent, RoleOnProject: roleOnProject, StartDate: startDate, EndDate: endDate, Notes: notes });
 
       let projectExists = false;
-      if (projectCode != null) {
+      if (projectCode !== undefined && projectCode !== null) {
         projectExists = v.checkReference('ProjectCode', projectCode, knownProjectCodes, 'Progetto');
       }
       let resourceExists = false;
-      if (resourceCode != null) {
+      if (resourceCode !== undefined && resourceCode !== null) {
         resourceExists = v.checkReference('ResourceCode', resourceCode, knownResourceCodes, 'Risorsa');
       }
 
-      if (projectCode != null && resourceCode != null && projectExists && resourceExists) {
+      if (
+        projectCode !== undefined &&
+        projectCode !== null &&
+        resourceCode !== undefined &&
+        resourceCode !== null &&
+        projectExists &&
+        resourceExists
+      ) {
         const key = `${projectCode.trim()}::${resourceCode.trim()}`;
         if (seenKeys.has(key)) {
           v.warnDuplicate('Allocazione', `${projectCode} / ${resourceCode}`);
@@ -1299,11 +1335,11 @@ export class ExcelService {
       v.warnEmpty({ AmountAllocated: amountAllocated, AmountCommitted: amountCommitted, AmountConsumed: amountConsumed, Supplier: supplier, Notes: notes });
 
       let projectExists = false;
-      if (projectCode != null) {
+      if (projectCode !== undefined && projectCode !== null) {
         projectExists = v.checkReference('ProjectCode', projectCode, knownProjectCodes, 'Progetto');
       }
 
-      if (projectCode != null && costCategory != null && projectExists) {
+      if (projectCode !== undefined && projectCode !== null && costCategory !== undefined && costCategory !== null && projectExists) {
         const key = `${projectCode.trim()}::${costCategory.trim()}`;
         if (seenKeys.has(key)) {
           v.warnDuplicate('Costo', `${projectCode} / ${costCategory}`);
@@ -1367,14 +1403,17 @@ export class ExcelService {
       const existingId = existingKeyToId.get(key);
 
       try {
-        const result = existingId != null ? await update(existingId, row.data) : await create(row.data);
+        const result =
+          existingId !== undefined && existingId !== null
+            ? await update(existingId, row.data)
+            : await create(row.data);
         if (result.success) {
-          if (existingId != null) {
+          if (existingId !== undefined && existingId !== null) {
             updated += 1;
             callbacks?.onLog?.({ sheet, row: row.rowNumber, level: 'success', message: `Aggiornato: ${result.message}` });
           } else {
             created += 1;
-            if (result.id != null) {
+            if (result.id !== undefined && result.id !== null) {
               existingKeyToId.set(key, result.id);
             }
             callbacks?.onLog?.({ sheet, row: row.rowNumber, level: 'success', message: `Creato: ${result.message}` });

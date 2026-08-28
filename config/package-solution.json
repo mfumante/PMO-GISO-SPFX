@@ -3,7 +3,7 @@
   "solution": {
     "name": "PMO GISO - Gestione Progetti",
     "id": "2d0462e0-2f79-48fc-ad58-1010c517c6f8",
-    "version": "1.0.0.0",
+    "version": "1.0.1.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,

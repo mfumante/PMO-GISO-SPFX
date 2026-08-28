@@ -138,11 +138,17 @@ export interface ICost {
 // con suffisso Id (numero) o null per svuotare il campo: le due forme vanno
 // tenute distinte.
 export type NewProject = Omit<IProject, 'Id' | 'SponsorUser' | 'ProjectManagerUser'> & {
+  // null (non undefined) e' richiesto dalla REST API di SharePoint per svuotare esplicitamente il campo persona.
+  // eslint-disable-next-line @rushstack/no-new-null
   SponsorUserId?: number | null;
+  // eslint-disable-next-line @rushstack/no-new-null
   ProjectManagerUserId?: number | null;
 };
+// eslint-disable-next-line @rushstack/no-new-null
 export type NewDeliverable = Omit<IDeliverable, 'Id' | 'OwnerUser'> & { OwnerUserId?: number | null };
+// eslint-disable-next-line @rushstack/no-new-null
 export type NewIssue = Omit<IIssue, 'Id' | 'OwnerUser'> & { OwnerUserId?: number | null };
+// eslint-disable-next-line @rushstack/no-new-null
 export type NewResource = Omit<IResource, 'Id' | 'PersonUser'> & { PersonUserId?: number | null };
 export type NewAllocation = Omit<IAllocation, 'Id'>;
 export type NewCost = Omit<ICost, 'Id'>;

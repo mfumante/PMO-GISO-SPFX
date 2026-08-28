@@ -130,7 +130,7 @@ function formatDate(value: string | undefined): string {
 }
 
 function formatCurrency(value: number | undefined): string {
-  return value != null ? currencyFormatter.format(value) : '-';
+  return value !== undefined && value !== null ? currencyFormatter.format(value) : '-';
 }
 
 // Riga etichetta/valore dei dati anagrafici: usata nella griglia a due colonne
@@ -180,7 +180,7 @@ function OverviewTab({ project, onEditProject }: { project: IProject; onEditProj
         <KpiCard
           label="Giorni residui"
           value={
-            daysRemaining == null
+            daysRemaining === undefined || daysRemaining === null
               ? '-'
               : daysRemaining >= 0
                 ? `${daysRemaining} giorni`

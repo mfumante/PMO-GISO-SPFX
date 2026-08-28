@@ -108,7 +108,7 @@ function buildEditValues(fields: IFormFieldSchema[], initialValues: FormValues):
     } else if (field.type === 'date') {
       values[field.name] = toDateInputValue(raw);
     } else {
-      values[field.name] = raw == null ? '' : String(raw);
+      values[field.name] = raw === undefined || raw === null ? '' : String(raw);
     }
   });
   return values;
@@ -201,11 +201,11 @@ export function EntityFormDialog({
           errors[field.name] = 'Deve essere un numero valido.';
           return;
         }
-        if (field.min != null && parsed < field.min) {
+        if (field.min !== undefined && field.min !== null && parsed < field.min) {
           errors[field.name] = `Il valore minimo e' ${field.min}.`;
           return;
         }
-        if (field.max != null && parsed > field.max) {
+        if (field.max !== undefined && field.max !== null && parsed > field.max) {
           errors[field.name] = `Il valore massimo e' ${field.max}.`;
           return;
         }

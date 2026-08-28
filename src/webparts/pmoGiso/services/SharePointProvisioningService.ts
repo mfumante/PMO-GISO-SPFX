@@ -533,7 +533,7 @@ export class SharePointProvisioningService {
 
     const createdBody = (await this.safeJson(createResponse)) as { d?: { Id?: number } };
     const itemId = createdBody.d?.Id;
-    if (itemId != null) {
+    if (itemId !== undefined && itemId !== null) {
       await this.deleteVerificationItem(listTitle, itemId);
     }
 
@@ -567,7 +567,7 @@ export class SharePointProvisioningService {
     }
 
     const body = (await this.safeJson(response)) as { Id?: number };
-    if (body.Id == null) {
+    if (body.Id === undefined || body.Id === null) {
       throw new Error("Impossibile determinare l'utente corrente.");
     }
     return body.Id;

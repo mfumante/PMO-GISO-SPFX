@@ -181,7 +181,7 @@ export class PeopleService {
       d?: { Id?: number; Title?: string; Email?: string; LoginName?: string };
     };
     const id = body.d?.Id;
-    if (id == null) {
+    if (id === undefined || id === null) {
       throw new Error(`Impossibile risolvere l'utente '${loginName}'.`);
     }
 

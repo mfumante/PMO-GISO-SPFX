@@ -44,7 +44,12 @@ function MainLayoutBody({ currentPage, onNavigate, userDisplayName, children }: 
         }}
       >
         <Toolbar />
-        <Box sx={{ flexGrow: 1, minHeight: 0 }}>{children}</Box>
+        {/* overflowY: 'auto' rende scrollabile solo quest'area quando un
+            antenato (es. pagina SharePoint full-bleed) forza un'altezza
+            esplicita sull'albero: senza questa regola l'overflow:hidden
+            di PmoGiso.tsx/MainLayout tagliava il contenuto invece di
+            scorrerlo, mentre Topbar/Sidebar restano fissi. */}
+        <Box sx={{ flexGrow: 1, minHeight: 0, overflowY: 'auto' }}>{children}</Box>
       </Box>
     </>
   );

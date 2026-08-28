@@ -317,7 +317,7 @@ export default function Amministrazione({ context }: AmministrazioneProps): Reac
         onLog: (entry) =>
           addLog(
             entry.level === 'success' ? 'success' : entry.level === 'error' ? 'error' : 'info',
-            `[${entry.sheet}${entry.row != null ? ` riga ${entry.row}` : ''}] ${entry.message}`,
+            `[${entry.sheet}${entry.row !== undefined && entry.row !== null ? ` riga ${entry.row}` : ''}] ${entry.message}`,
           ),
         onProgress: (completed, total) => setImportProgress({ completed, total }),
       });
